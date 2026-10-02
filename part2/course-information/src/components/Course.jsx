@@ -12,11 +12,19 @@ const Content = ({ parts }) => {
 
 const Part = ({ name, exercises }) => <p>{name} {exercises}</p>;
 
+const Total = ({ parts }) => {
+    const total = parts.reduce((result, part) => result + part.exercises, 0)
+    return (
+        <p><b>total of {total} exercises</b></p>
+    )
+}
+
 const Course = ({ course }) => {
     return (
         <>
             <Header course={course.name} />
             <Content parts={course.parts} />
+            <Total parts={course.parts} />
         </>
     )
 }
