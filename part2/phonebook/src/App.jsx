@@ -66,10 +66,27 @@ const App = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    const entryExists = persons.some(p => p.name === newName);
-    if (entryExists) return alert(`${newName} is already added to phonebook`)
+
+    if (newName === "" || newNumber === "") return;
 
     const newPersonObject = {name: newName, number: newNumber};
+
+    const entryExists = persons.some(p => p.name === newName);
+    if (entryExists) {
+      if(window.confirm(
+        `${newName} is already added to phonebook, replace the old number with a new one?`
+      )) {
+        const id = persons.find(p => p.name === newName).id;
+        services
+          .changeNumber(id, newPersonObject)
+          .then(changedObj => {
+            setPersons(persons.map(p => p.id === id ? changedObj : p))
+          })
+      }
+
+      return;
+    }
+
     services
       .addNew(newPersonObject)
       .then(newObject => setPersons(persons.concat(newObject)))
