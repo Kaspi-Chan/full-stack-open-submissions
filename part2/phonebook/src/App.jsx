@@ -50,9 +50,13 @@ const App = () => {
     e.preventDefault();
     const entryExists = persons.some(p => p.name === newName);
     if (entryExists) return alert(`${newName} is already added to phonebook`)
-      
-    const newPersons = persons.concat({name: newName, number: newNumber})
-    setPersons(newPersons)
+
+    const newPersonObject = {name: newName, number: newNumber};
+    axios
+      .post("http://localhost:3001/persons", newPersonObject)
+      .then(response => {
+        setPersons(persons.concat(response.data))
+      });
   }
 
   const filterPersons = (p) => p.name.toLowerCase().includes(filter.toLowerCase());
