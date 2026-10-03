@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useState } from 'react'
-import axios from 'axios';
+import services from "./services/persons"
 
 const Filter = ({filter, handleChange}) => {
   return (
@@ -37,9 +37,9 @@ const App = () => {
 
   // Fetch persons from 3001/persons
   useEffect(() => {
-    axios
-      .get("http://localhost:3001/persons")
-      .then(res => setPersons(res.data));
+    services
+      .getAll()
+      .then(initialPersons => setPersons(initialPersons))
   }, [])
 
   const [newName, setNewName] = useState('')
@@ -52,11 +52,9 @@ const App = () => {
     if (entryExists) return alert(`${newName} is already added to phonebook`)
 
     const newPersonObject = {name: newName, number: newNumber};
-    axios
-      .post("http://localhost:3001/persons", newPersonObject)
-      .then(response => {
-        setPersons(persons.concat(response.data))
-      });
+    services
+      .addNew(newPersonObject)
+      .then(newObject => setPersons(persons.concat(newObject)))
   }
 
   const filterPersons = (p) => p.name.toLowerCase().includes(filter.toLowerCase());
