@@ -1,5 +1,35 @@
 import { useState } from 'react'
 
+const Filter = ({filter, handleChange}) => {
+  return (
+    <div>
+      filter shown with <input value={filter} onChange={handleChange}/>
+    </div>
+  )
+}
+
+const PersonsForm = (props) => {
+  const {handleSubmit, newName, newNumber, handleNameChange, handleNumberChange} = props;
+  return (
+    <form onSubmit={handleSubmit}>
+      <PersonInput text="name" value={newName} handleChange={handleNameChange} />
+      <PersonInput text="number" value={newNumber} handleChange={handleNumberChange} />
+      <div>
+        <button type="submit">add</button>
+      </div>
+    </form>
+  )
+}
+
+const PersonInput = ({text, value, handleChange}) => (
+  <div>
+    {text}: <input value={value} onChange={handleChange}/>
+  </div>
+)
+
+const Person = ({name, number}) => <div>{name} {number}</div>
+const Persons = ({collection}) => collection.map(p => <Person key={p.name} name={p.name} number={p.number}/>)
+
 const App = () => {
   const [persons, setPersons] = useState([
     { name: 'Arto Hellas', number: '040-123456', id: 1 },
@@ -7,6 +37,7 @@ const App = () => {
     { name: 'Dan Abramov', number: '12-43-234345', id: 3 },
     { name: 'Mary Poppendieck', number: '39-23-6423122', id: 4 }
   ])
+
   const [newName, setNewName] = useState('')
   const [newNumber, setNewNumber] = useState('');
   const [filter, setFilter] = useState('');
@@ -25,21 +56,17 @@ const App = () => {
   return (
     <div>
       <h2>Phonebook</h2>
-      filter shown with <input value={filter} onChange={(e) => setFilter(e.target.value)}/>
-      <h2>add new</h2>
-      <form onSubmit={handleSubmit}>
-        <div>
-          name: <input value={newName} onChange={(e) => setNewName(e.target.value)}/>
-        </div>
-        <div>
-          number: <input value={newNumber} onChange={(e) => setNewNumber(e.target.value)}/>
-        </div>
-        <div>
-          <button type="submit">add</button>
-        </div>
-      </form>
-      <h2>Numbers</h2>
-      {persons.filter(filterPersons).map(p => <div key={p.name}>{p.name} {p.number}</div>)}
+      <Filter filter={filter} handleChange={(e) => setFilter(e.target.value)} />
+      <h3>add new</h3>
+      <PersonsForm 
+        handleSubmit={handleSubmit}
+        newName={newName}
+        newNumber={newNumber}
+        handleNameChange={(e) => setNewName(e.target.value)}
+        handleNumberChange={(e) => setNewNumber(e.target.value)}
+      />
+      <h3>Numbers</h3>
+      <Persons collection={persons.filter(filterPersons)} />
     </div>
   )
 }
