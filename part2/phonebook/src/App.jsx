@@ -29,8 +29,26 @@ const PersonInput = ({text, value, handleChange}) => (
   </div>
 )
 
-const Person = ({name, number}) => <div>{name} {number}</div>
-const Persons = ({collection}) => collection.map(p => <Person key={p.name} name={p.name} number={p.number}/>)
+const Person = ({id, name, number, handleDelete}) => {
+  return (
+    <div>
+      {name} {number} 
+      <button onClick={() => handleDelete(id, name)}>delete</button>
+    </div>
+  )
+}
+const Persons = ({collection, handleDelete}) => {
+  return (
+    collection.map(p => (
+      <Person 
+        key={p.name} 
+        id={p.id}
+        name={p.name} 
+        number={p.number}
+        handleDelete={handleDelete} />)
+    )
+  )
+}
 
 const App = () => {
   const [persons, setPersons] = useState([])
@@ -59,6 +77,14 @@ const App = () => {
 
   const filterPersons = (p) => p.name.toLowerCase().includes(filter.toLowerCase());
 
+  const handleDelete = (id, name) => {
+    if (window.confirm(`Delete ${name} ?`)) {
+      services
+        .deleteEntry(id)
+        .then(res => setPersons(persons.filter(p => p.id !== id)));
+    }
+  }
+
   return (
     <div>
       <h2>Phonebook</h2>
@@ -72,7 +98,10 @@ const App = () => {
         handleNumberChange={(e) => setNewNumber(e.target.value)}
       />
       <h3>Numbers</h3>
-      <Persons collection={persons.filter(filterPersons)} />
+      <Persons 
+        collection={persons.filter(filterPersons)}
+        handleDelete={handleDelete}
+      />
     </div>
   )
 }
