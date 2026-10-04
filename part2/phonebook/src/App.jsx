@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { useState } from 'react'
 import services from "./services/persons"
+import "./index.css";
 
 const Filter = ({filter, handleChange}) => {
   return (
@@ -50,6 +51,16 @@ const Persons = ({collection, handleDelete}) => {
   )
 }
 
+const Notification = ({message}) => {
+  if (message === null) return null;
+
+  return (
+    <div className='note'>
+      {message}
+    </div>
+  )
+}
+
 const App = () => {
   const [persons, setPersons] = useState([])
 
@@ -63,6 +74,7 @@ const App = () => {
   const [newName, setNewName] = useState('')
   const [newNumber, setNewNumber] = useState('');
   const [filter, setFilter] = useState('');
+  const [successMessage, setSuccessMessage] = useState(null);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -81,6 +93,7 @@ const App = () => {
           .changeNumber(id, newPersonObject)
           .then(changedObj => {
             setPersons(persons.map(p => p.id === id ? changedObj : p))
+            showSuccessMessage(`Updated ${newName}'s number`)
           })
       }
 
@@ -89,7 +102,10 @@ const App = () => {
 
     services
       .addNew(newPersonObject)
-      .then(newObject => setPersons(persons.concat(newObject)))
+      .then(newObject => {
+        setPersons(persons.concat(newObject))
+        showSuccessMessage(`Added ${newName}`)
+      })
   }
 
   const filterPersons = (p) => p.name.toLowerCase().includes(filter.toLowerCase());
@@ -102,9 +118,15 @@ const App = () => {
     }
   }
 
+  const showSuccessMessage = (text) => {
+    setSuccessMessage(text)
+    setTimeout(() => setSuccessMessage(null), 5000);
+  }
+
   return (
     <div>
       <h2>Phonebook</h2>
+      <Notification message={successMessage} />
       <Filter filter={filter} handleChange={(e) => setFilter(e.target.value)} />
       <h3>add new</h3>
       <PersonsForm 

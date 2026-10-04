@@ -1,0 +1,11 @@
+.note {
+    width: 100%;
+    max-width: 420px;
+    padding: 1rem;
+    font-size: 18px;
+    border-radius: 5px;
+    border: 2px solid green;
+    background-color: gainsboro;
+    color: green;
+    margin-bottom: 1rem;
+}
