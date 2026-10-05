@@ -1,22 +1,39 @@
 import { useState } from 'react'
 import axios from "axios"
+import { useEffect } from 'react';
 
 const BASE_URL = "https://studies.cs.helsinki.fi/restcountries/api/all"
 
-const CountryResult = ({countries}) => {
+const CountryResult = ({countries, selected, setSelected}) => {
   if (!countries) return null;
 
   if (countries.length > 10) {
     return <div>Too many matches, specify another filter</div>
   }
+
+  const isVisible = (c) => {
+    if (!selected) return false;
+
+    return selected.name.common === c.name.common;
+ }
+
+  // Default case -> query matches 1 country
   if (countries.length === 1) {
     return <Country country={countries[0]} />
   }
 
   return (
-    countries.map(c => (
-      <div key={c.name.common}>{c.name.common}</div>
-    ))
+    <>
+      {countries.map(c => (
+        <div key={c.name.common}>
+          {c.name.common} 
+          <button onClick={() => setSelected(isVisible(c) ? null : c)}>
+            {isVisible(c) ? 'Hide' : 'Show'}
+          </button>
+        </div>
+      ))}
+      {selected && <Country country={selected} />}
+    </>
   )
 }
 
@@ -44,18 +61,18 @@ const Country = ({ country }) => {
 function App() {
   const [value, setValue] = useState("")
   const [countries, setCountries] = useState(null);
+  const [selected, setSelected] = useState(null);
 
-
-  const handleSearch = (e) => {
-    const newValue = e.target.value
-    setValue(newValue);
-
-    if (countries) return;
-
-    // move to useEffect
+  useEffect(() => {
     axios
       .get(BASE_URL)
       .then(res => setCountries(res.data))
+  }, [])
+
+  const handleSearch = (e) => {
+    // const newValue = e.target.value
+    setValue(e.target.value);
+    setSelected(null);
   }
 
   const filterCountries = (c) => {
@@ -68,7 +85,11 @@ function App() {
         Find countries <input value={value} onChange={handleSearch} />
       </div>
 
-      <CountryResult countries={countries ? countries.filter(filterCountries) : null} />
+      <CountryResult 
+        countries={countries ? countries.filter(filterCountries) : null} 
+        selected={selected}
+        setSelected={setSelected}
+        />
     </div>
   )
 }
