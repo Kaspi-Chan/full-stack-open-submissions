@@ -51,11 +51,11 @@ const Persons = ({collection, handleDelete}) => {
   )
 }
 
-const Notification = ({message}) => {
+const Notification = ({message, isError}) => {
   if (message === null) return null;
 
   return (
-    <div className='note'>
+    <div className={`note ${isError ? 'error' : ''}`}>
       {message}
     </div>
   )
@@ -74,7 +74,8 @@ const App = () => {
   const [newName, setNewName] = useState('')
   const [newNumber, setNewNumber] = useState('');
   const [filter, setFilter] = useState('');
-  const [successMessage, setSuccessMessage] = useState(null);
+  const [notificationMessage, setNotificationMessage] = useState(null);
+  const [isError, setIsError] = useState(false);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -93,7 +94,11 @@ const App = () => {
           .changeNumber(id, newPersonObject)
           .then(changedObj => {
             setPersons(persons.map(p => p.id === id ? changedObj : p))
-            showSuccessMessage(`Updated ${newName}'s number`)
+            showNotificationMessage(`Updated ${newName}'s number`)
+          })
+          .catch(err => {
+            showNotificationMessage(`Information of ${newName} has already been removed from server` , true)
+            setPersons(persons.filter(p => p.id !== id))
           })
       }
 
@@ -104,7 +109,7 @@ const App = () => {
       .addNew(newPersonObject)
       .then(newObject => {
         setPersons(persons.concat(newObject))
-        showSuccessMessage(`Added ${newName}`)
+        showNotificationMessage(`Added ${newName}`)
       })
   }
 
@@ -114,19 +119,26 @@ const App = () => {
     if (window.confirm(`Delete ${name} ?`)) {
       services
         .deleteEntry(id)
-        .then(res => setPersons(persons.filter(p => p.id !== id)));
+        .then(res => setPersons(persons.filter(p => p.id !== id)))
+        .catch(err => {
+          showNotificationMessage(`Information of ${name} has already been removed from server` , true)
+          setPersons(persons.filter(p => p.id !== id))
+        })
     }
   }
 
-  const showSuccessMessage = (text) => {
-    setSuccessMessage(text)
-    setTimeout(() => setSuccessMessage(null), 5000);
+  const showNotificationMessage = (text, isError) => {
+    isError ? setIsError(true) : setIsError(false);
+    setNotificationMessage(text)
+    setTimeout(() => {
+      setNotificationMessage(null)
+    }, 5000);
   }
 
   return (
     <div>
       <h2>Phonebook</h2>
-      <Notification message={successMessage} />
+      <Notification message={notificationMessage} isError={isError} />
       <Filter filter={filter} handleChange={(e) => setFilter(e.target.value)} />
       <h3>add new</h3>
       <PersonsForm 
