@@ -3,8 +3,11 @@ import axios from "axios"
 import { useEffect } from 'react';
 
 const BASE_URL = "https://studies.cs.helsinki.fi/restcountries/api/all"
+const API_KEY = import.meta.env.VITE_SOME_KEY;
+const WEATHER_URL_BASE = "https://api.openweathermap.org/data/2.5/weather?";
+const ICON_URL_BASE = "https://openweathermap.org/img/wn/";
 
-const CountryResult = ({countries, selected, setSelected}) => {
+const CountryResult = ({ countries, selected, setSelected }) => {
   if (!countries) return null;
 
   if (countries.length > 10) {
@@ -15,7 +18,7 @@ const CountryResult = ({countries, selected, setSelected}) => {
     if (!selected) return false;
 
     return selected.name.common === c.name.common;
- }
+  }
 
   // Default case -> query matches 1 country
   if (countries.length === 1) {
@@ -26,7 +29,7 @@ const CountryResult = ({countries, selected, setSelected}) => {
     <>
       {countries.map(c => (
         <div key={c.name.common}>
-          {c.name.common} 
+          {c.name.common}
           <button onClick={() => setSelected(isVisible(c) ? null : c)}>
             {isVisible(c) ? 'Hide' : 'Show'}
           </button>
@@ -39,6 +42,21 @@ const CountryResult = ({countries, selected, setSelected}) => {
 
 const Country = ({ country }) => {
   const hasCapital = country.capital;
+  const [weather, setWeather] = useState(null);
+
+  useEffect(() => {
+    if (hasCapital) {
+      axios
+        .get(`${WEATHER_URL_BASE}q=${country.capital}&appid=${API_KEY}&units=metric`)
+        .then((result) => setWeather({
+            temp: result.data.main.temp,
+            wind: result.data.wind.speed,
+            icon: {
+              src: `${result.data.weather[0].icon}@2x.png`, 
+              alt: `Icon showcasing ${result.data.weather[0].description} weather`}
+          }))
+    }
+  }, [country.capital]);
 
   return (
     <div>
@@ -54,6 +72,15 @@ const Country = ({ country }) => {
       </ul>
 
       <img src={country.flags.png} alt={country.flags.alt} />
+
+      {weather && (
+        <div>
+          <h2>Weather in {country.capital}</h2>
+          <div>Temperature {weather.temp}</div>
+          <img src={`${ICON_URL_BASE}/${weather.icon.src}`} alt={weather.icon.alt} />
+          <div>Wind {weather.wind} m/s</div>
+        </div>
+      )}
     </div>
   )
 }
@@ -70,7 +97,6 @@ function App() {
   }, [])
 
   const handleSearch = (e) => {
-    // const newValue = e.target.value
     setValue(e.target.value);
     setSelected(null);
   }
@@ -85,11 +111,11 @@ function App() {
         Find countries <input value={value} onChange={handleSearch} />
       </div>
 
-      <CountryResult 
-        countries={countries ? countries.filter(filterCountries) : null} 
+      <CountryResult
+        countries={countries ? countries.filter(filterCountries) : null}
         selected={selected}
         setSelected={setSelected}
-        />
+      />
     </div>
   )
 }
