@@ -58,8 +58,8 @@ function App() {
       .then(res => setCountries(res.data))
   }
 
-  const filterCountries = (c, search) => {
-    return c.name.common.toLowerCase().includes(search.toLowerCase());
+  const filterCountries = (c) => {
+    return c.name.common.toLowerCase().includes(value.toLowerCase());
   }
 
   return (
@@ -68,7 +68,7 @@ function App() {
         Find countries <input value={value} onChange={handleSearch} />
       </div>
 
-      <CountryResult countries={countries ? countries.filter((c) => filterCountries(c, value)) : null} />
+      <CountryResult countries={countries ? countries.filter(filterCountries) : null} />
     </div>
   )
 }
