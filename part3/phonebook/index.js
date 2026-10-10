@@ -1,6 +1,8 @@
 const express = require("express");
 const app = express();
 
+app.use(express.json());
+
 let persons = [
     { 
       "id": "1",
@@ -42,6 +44,41 @@ app.get('/api/persons/:id', (request, response) => {
     if (!person) return response.status(404).end();
 
     response.json(person);
+})
+
+app.delete('/api/persons/:id', (request, response) => {
+    const id = request.params.id;
+    persons = persons.filter(p => p.id !== id)
+    
+    response.status(204).end();
+})
+
+const generateId = () => Math.ceil(Math.random() * 10000000)
+
+app.post('/api/persons', (request, response) => {
+    const body = request.body;
+
+    if (!body.name || !body.number) {
+        return response.status(400).json({
+            error: "must provide name and number"
+        })
+    }
+
+    const entryExists = persons.find(p => p.name === body.name)
+    if (entryExists) {
+        return response.status(400).json({
+            error: "must be unqiue"
+        })
+    }
+
+    const newPerson = {
+        id: String(generateId()),
+        name: body.name,
+        number: body.number
+    }
+
+    persons = persons.concat(newPerson);
+    response.json(newPerson)
 })
 
 const PORT = 3001
