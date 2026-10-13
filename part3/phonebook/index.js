@@ -17,7 +17,7 @@ morgan.token('information', function (req, res) {
 })
 app.use(morgan(":method :url :status :res[content-length] - :response-time ms :information"));
 
-app.get('/api/persons', (request, response) => {
+app.get('/api/people', (request, response) => {
     Person.find({}).then(persons => {
         response.json(persons);
     })
@@ -30,7 +30,7 @@ app.get('/info', (request, response) => {
     response.send(`<div>${info}</div><br/><div>${time}</div>`)
 })
 
-app.get('/api/persons/:id', (request, response) => {
+app.get('/api/people/:id', (request, response) => {
     Person.findById(request.params.id).then(person => {
         response.json(person);
     })
@@ -43,9 +43,7 @@ app.delete('/api/persons/:id', (request, response) => {
     response.status(204).end();
 })
 
-const generateId = () => Math.ceil(Math.random() * 10000000)
-
-app.post('/api/persons', (request, response) => {
+app.post('/api/people', (request, response) => {
     const body = request.body;
 
     if (!body.name || !body.number) {
@@ -54,21 +52,21 @@ app.post('/api/persons', (request, response) => {
         })
     }
 
-    const entryExists = persons.find(p => p.name === body.name)
-    if (entryExists) {
-        return response.status(400).json({
-            error: "must be unqiue"
-        })
-    }
+    // const entryExists = persons.find(p => p.name === body.name)
+    // if (entryExists) {
+    //     return response.status(400).json({
+    //         error: "must be unqiue"
+    //     })
+    // }
 
-    const newPerson = {
-        id: String(generateId()),
+    const person = new Person({
         name: body.name,
         number: body.number
-    }
+    })
 
-    persons = persons.concat(newPerson);
-    response.json(newPerson)
+    person.save().then(savedPerson => {
+        response.json(savedPerson)
+    })
 })
 
 const PORT = process.env.PORT || 3001
