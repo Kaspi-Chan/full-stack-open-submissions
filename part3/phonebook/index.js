@@ -24,16 +24,22 @@ app.get('/api/people', (request, response) => {
 })
 
 app.get('/info', (request, response) => {
-    const info = `Phonebook has info for ${persons.length || 0} people`
-    const time = new Date();
-
-    response.send(`<div>${info}</div><br/><div>${time}</div>`)
+    Person.find({}).then(persons => {
+        const info = `Phonebook has info for ${persons.length || 0} people`
+        const time = new Date();
+        
+        response.send(`<div>${info}</div><br/><div>${time}</div>`)
+    })
 })
 
 app.get('/api/people/:id', (request, response, next) => {
     Person.findById(request.params.id)
         .then(person => {
-            response.json(person);
+            if (person) {
+                response.json(person);
+            } else {
+                response.status(404).end();
+            }
         })
         .catch(error => next(error)) 
 })
@@ -70,6 +76,24 @@ app.post('/api/people', (request, response) => {
     person.save().then(savedPerson => {
         response.json(savedPerson)
     })
+})
+
+app.put('/api/people/:id', (request, response, next) => {
+  const { name, number } = request.body
+  Person.findById(request.params.id)
+    .then(person => {
+      if (!person) {
+        return response.status(404).end()
+      }
+
+      person.name = name
+      person.number = number
+
+      return person.save().then((updatedPerson) => {
+        response.json(updatedPerson)
+      })
+    })
+    .catch(error => next(error))
 })
 
 const errorHandler = (error, request, response, next) => {
