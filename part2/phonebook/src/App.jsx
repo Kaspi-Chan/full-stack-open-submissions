@@ -97,6 +97,10 @@ const App = () => {
             showNotificationMessage(`Updated ${newName}'s number`)
           })
           .catch(err => {
+            if (err.response.status === 400) {
+              showNotificationMessage(err.response.data.error , true)
+              return;
+            }
             showNotificationMessage(`Information of ${newName} has already been removed from server` , true)
             setPersons(persons.filter(p => p.id !== id))
           })
