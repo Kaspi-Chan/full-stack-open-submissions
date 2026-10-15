@@ -6,8 +6,8 @@ if (process.argv.length < 3) {
 }
 
 const password = process.argv[2]
-const name = process.argv[3];
-const number = process.argv[4];
+const name = process.argv[3]
+const number = process.argv[4]
 
 const url = `mongodb+srv://admin:${password}@cluster0.mxtdqpe.mongodb.net/phoneBook?appName=Cluster0`
 
@@ -20,17 +20,17 @@ const personsSchema = new mongoose.Schema({
   number: String,
 })
 
-const Person = mongoose.model('Person', personsSchema);
+const Person = mongoose.model('Person', personsSchema)
 
 if (!name && !number) {
-    Person.find({}).then(persons => {
-        console.log("phonebook:")
-        persons.forEach(person => {
-            console.log(`${person.name} ${person.number}`)
-        })
-        mongoose.connection.close()
+  Person.find({}).then(persons => {
+    console.log('phonebook:')
+    persons.forEach(person => {
+      console.log(`${person.name} ${person.number}`)
     })
-    return;
+    mongoose.connection.close()
+  })
+  return
 }
 
 const person = new Person({ name, number })
