@@ -111,6 +111,9 @@ const App = () => {
         setPersons(persons.concat(newObject))
         showNotificationMessage(`Added ${newName}`)
       })
+      .catch(err => {
+        showNotificationMessage(err.response.data.error, true)
+      })
   }
 
   const filterPersons = (p) => p.name.toLowerCase().includes(filter.toLowerCase());
