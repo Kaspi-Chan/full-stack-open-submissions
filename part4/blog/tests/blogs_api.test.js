@@ -5,7 +5,6 @@ const app = require('../app')
 const assert = require('node:assert')
 const helper = require('./test_helper')
 const Blog = require('../models/blog')
-const { identity } = require('lodash')
 
 const api = supertest(app)
 
@@ -56,6 +55,50 @@ test('a valid blog can be added', async () => {
   const addedBlog = blogsAtEnd.find(b => b.id === res.body.id);
 
   assert.partialDeepStrictEqual(addedBlog, newBlog);
+})
+
+test('likes property defaults to 0 if missing', async () => {
+  const newBlog = {
+    "title": "Test Blog",
+    "author": "Test Testovich",
+    "url": "api/blog/",
+  }
+
+  const res = await api
+    .post('/api/blogs')
+    .send(newBlog)
+    .expect(201)
+    .expect('Content-Type', /application\/json/)
+
+  const blogsAtEnd = await helper.blogsInDb()
+  const addedBlog = blogsAtEnd.find(b => b.id === res.body.id);
+
+  assert.equal(addedBlog.likes, 0);
+})
+
+test('missing title or url fails request', async () => {
+  const newBlogWithoutTitle = {
+    "author": "Test Testovich",
+    "url": "api/blog/",
+  }
+
+  const newBlogWithoutUrl = {
+    "title": "Test Blog",
+    "author": "Test Testovich",
+  }
+
+  const res1 = await api
+    .post('/api/blogs')
+    .send(newBlogWithoutTitle)
+    .expect(400)
+
+  const res2 = await api
+    .post('/api/blogs')
+    .send(newBlogWithoutUrl)
+    .expect(400)
+
+  const blogsAtEnd = await helper.blogsInDb()
+  assert.strictEqual(blogsAtEnd.length, helper.initialBlogs.length)
 })
 
 after(async () => {
