@@ -101,6 +101,36 @@ test('missing title or url fails request', async () => {
   assert.strictEqual(blogsAtEnd.length, helper.initialBlogs.length)
 })
 
+test('successfully delete an entry', async () => {
+  const blogsAtStart = await helper.blogsInDb();
+  const postToDelete = blogsAtStart[0];
+
+  await api.delete(`/api/blogs/${postToDelete.id}`).expect(204);
+
+  const blogsAtEnd = await helper.blogsInDb()
+  const entryExists = !!blogsAtEnd.find(post => post.id === postToDelete.id);
+
+  assert.strictEqual(entryExists, false)
+  assert.strictEqual(blogsAtEnd.length, blogsAtStart.length - 1);
+})
+
+test('update the likes of a post', async () => {
+  const blogsAtStart = await helper.blogsInDb();
+  const blogToUpdate = blogsAtStart[0];
+
+  const newLikes = 50
+  const newBlog = {...blogToUpdate, likes: newLikes }
+
+  const updatedBlog = await api
+    .put(`/api/blogs/${blogToUpdate.id}`)
+    .send(newBlog)
+    .expect(200)
+
+  const updatedLikes = updatedBlog.body.likes;
+
+  assert.strictEqual(updatedLikes, newLikes)
+})
+
 after(async () => {
   await mongoose.connection.close();
 })
