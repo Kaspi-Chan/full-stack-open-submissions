@@ -136,32 +136,100 @@ describe("blogs", () => {
   })
 })
 
-describe('New user', () => {
+describe('New users', () => {
   beforeEach(async () => {
     await User.deleteMany({})
-    // const passwordHash = await bcrypt.hash(PASSWORD, 10)
-    // const user = new User({ username: 'root', passwordHash })
-    // await user.save()
+    const passwordHash = await bcrypt.hash(PASSWORD, 10)
+    const user = new User({ username: 'root', passwordHash })
+    await user.save()
   })
 
-  test('must have valid username and password', async () => {
+  test('without username or password are not created', async () => {
     const usersAtStart = await helper.usersInDb()
 
-    const passwordHash = await bcrypt.hash(PASSWORD, 10)
-    const newUser = {
-      name: "Tt",
-      username: 'test',
+    const userWithNoUsername = {
+      name: "Test",
       password: "12345"
     }
-// wtf?
+
+    const userWithNoPassword = {
+      name: "Test",
+      username: "testtt",
+    }
+
+    const result = await api
+      .post('/api/users')
+      .send(userWithNoUsername)
+      .expect(400)
+
+    const result2 = await api
+      .post('/api/users')
+      .send(userWithNoPassword)
+      .expect(400)
+    
+    assert(result.body.error.includes('must provide username and password'))
+    assert(result2.body.error.includes('must provide username and password'))
+    
+    const usersAtEnd = await helper.usersInDb()
+    assert.strictEqual(usersAtEnd.length, usersAtStart.length)
+  })
+
+  test('with invalid username are not created', async () => {
+    const usersAtStart = await helper.usersInDb()
+
+    const newUserWithBadUsername = {
+      name: "Test",
+      username: 't2',
+      password: "12345"
+    }
+
+    const result = await api
+      .post('/api/users')
+      .send(newUserWithBadUsername)
+      .expect(400)
+    
+    const usersAtEnd = await helper.usersInDb()
+    assert(result.body.error.includes('shorter than the minimum allowed length'))
+    assert.strictEqual(usersAtEnd.length, usersAtStart.length)
+  })
+
+  test('with invalid password are not created', async () => {
+    const usersAtStart = await helper.usersInDb()
+
+    const newUserWithBadPassword = {
+      name: "Test 2",
+      username: 'test',
+      password: "12"
+    }
+
+    const result = await api
+      .post('/api/users')
+      .send(newUserWithBadPassword)
+      .expect(400)
+
+    assert(result.body.error.includes('shorter than the minimum allowed length'))
+
+    const usersAtEnd = await helper.usersInDb()
+    assert.strictEqual(usersAtEnd.length, usersAtStart.length)
+  })
+
+  test('with dublicated usernames are not created', async () => {
+    const usersAtStart = await helper.usersInDb()
+
+    const newUser = {
+      name: "Test 3",
+      username: 'root',
+      password: '3213412',
+    }
+
     const result = await api
       .post('/api/users')
       .send(newUser)
       .expect(400)
 
-    const usersAtEnd = await helper.usersInDb()
-    assert(result.body.error.includes('shorter than the minimum allowed length'))
+    assert(result.body.error.includes('to be unique'))
 
+    const usersAtEnd = await helper.usersInDb()
     assert.strictEqual(usersAtEnd.length, usersAtStart.length)
   })
 })
