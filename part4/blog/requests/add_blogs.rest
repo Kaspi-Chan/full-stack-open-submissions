@@ -1,9 +1,9 @@
 POST http://localhost:3003/api/blogs/
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6IlRlc3QiLCJpZCI6IjZhZTY0YWQyZTlhNWU1ZTk5NGFlYjcyOSIsImlhdCI6MTc5MzQ3NzMzNSwiZXhwIjoxNzkzNDgwOTM1fQ.tE9OO0YUobyFhBDfCh1l9oA3ayHMKh_heSAx4qaG0S8
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6IlRlc3QiLCJpZCI6IjZhZTY1NDdhOWE4NmFhMDVhNzZiZGQxNSIsImlhdCI6MTc5MzQ3OTgwNiwiZXhwIjoxNzkzNDgzNDA2fQ.FX1GHVaw-oaxtiFx9BbnqSQZ6ptn2X-TUVmlLbhK7A0
 
 {
-    "title": "User blogg with auth and token 2",
+    "title": "User blogg with auth and token 4",
     "author": "Test Testovich",
     "url": "api/blog/",
     "likes": 5
