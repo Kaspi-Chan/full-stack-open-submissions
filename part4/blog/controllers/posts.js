@@ -1,14 +1,13 @@
 const postsRouter = require('express').Router();
 const Blog = require('../models/blog');
-const User = require('../models/user');
-const jwt = require('jsonwebtoken')
+const { userExtractor } = require('../utils/middleware');
 
 postsRouter.get('/', async (request, response) => {
   const blogs = await Blog.find({}).populate('user');
   response.json(blogs)
 })
 
-postsRouter.post('/', async (request, response) => {
+postsRouter.post('/', userExtractor, async (request, response) => {
   const body = request.body
 
   if (!body.title || !body.url) {
@@ -17,17 +16,7 @@ postsRouter.post('/', async (request, response) => {
     });
   }
 
-  const decodedToken = jwt.verify(request.token, process.env.SECRET)
-  if (!decodedToken.id) {
-    return response.status(401).json({
-      error: "invalid token"
-    })
-  }
-
-  const user = await User.findById(decodedToken.id);
-  if (!user) {
-    return response.status(400).json({ error: 'UserId missing or not valid' })
-  }
+  const user = request.user
 
   const newBlog = new Blog({
     ...body,
@@ -41,29 +30,18 @@ postsRouter.post('/', async (request, response) => {
   response.status(201).json(savedBlog)
 })
 
-postsRouter.delete('/:id', async (request, response) => {
-  const decodedToken = jwt.verify(request.token, process.env.SECRET)
-  if (!decodedToken.id) {
-    return response.status(401).json({
-      error: "invalid token"
-    })
-  }
-
-  const user = await User.findById(decodedToken.id);
-  if (!user) {
-    return response.status(400).json({ error: 'UserId missing or not valid' })
-  }
-
+postsRouter.delete('/:id', userExtractor, async (request, response) => {
+  const user = request.user
   const blog = await Blog.findById(request.params.id);
   
   if (!blog) return response.status(404).json({ error: "Blog doesn't exists"})
 
-  if (blog.user.toString() !== user.id.toString()) {
+  if (!blog.user || blog.user.toString() !== user.id.toString()) {
     return response.status(403).json({ error: "Blog doesn't belong to this user" })
   }
   
-  await Blog.deleteOne(blog.id)
-  user.blogs.filter(b => !b.equals(blog._id))
+  await blog.deleteOne()
+  user.blogs = user.blogs.filter(b => !b.equals(blog._id))
   await user.save();
   response.status(204).end()
 })

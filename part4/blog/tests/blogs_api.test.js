@@ -7,14 +7,44 @@ const helper = require('./test_helper')
 const Blog = require('../models/blog')
 const User = require('../models/user')
 const bcrypt = require('bcrypt')
+const jwt = require('jsonwebtoken');
 
 const api = supertest(app)
 const PASSWORD = "sekret";
+const USERNAME = 'root'
+
+const addDummyUser = async () => {
+  const passwordHash = await bcrypt.hash(PASSWORD, 10)
+  return new User({ username: USERNAME, passwordHash })
+}
+
+const signInUser = async () => {
+  const user = await User.findOne({username: USERNAME});
+
+  const userForToken = {
+    username: user.username,
+    id: user._id,
+  }
+
+  const token = jwt.sign(
+    userForToken,
+    process.env.SECRET,
+    { expiresIn: 60*60 }
+  )
+
+  return { token, username: user.username }
+}
 
 describe("blogs", () => {
   beforeEach(async () => {
     await Blog.deleteMany({})
-    await Blog.insertMany(helper.initialBlogs)
+    await User.deleteMany({})
+
+    const user = await addDummyUser()
+    const blogs = helper.initialBlogs.map(b => ({ ...b, user: user._id }))
+    const inserted = await Blog.insertMany(blogs)
+    user.blogs = inserted.map(b => b._id)
+    await user.save()
   })
 
   test('blogs are returned as json', async () => {
@@ -47,8 +77,11 @@ describe("blogs", () => {
       "likes": 5,
     }
 
+    const { token, username } = await signInUser()
+
     const res = await api
       .post('/api/blogs')
+      .set({ Authorization: `Bearer ${token}` })
       .send(newBlog)
       .expect(201)
       .expect('Content-Type', /application\/json/)
@@ -68,9 +101,12 @@ describe("blogs", () => {
       "url": "api/blog/",
     }
 
+    const { token, username } = await signInUser()
+
     const res = await api
       .post('/api/blogs')
       .send(newBlog)
+      .set({ Authorization: `Bearer ${token}` })
       .expect(201)
       .expect('Content-Type', /application\/json/)
 
@@ -91,13 +127,17 @@ describe("blogs", () => {
       "author": "Test Testovich",
     }
 
+    const { token, username } = await signInUser()
+
     const res1 = await api
       .post('/api/blogs')
+      .set({ Authorization: `Bearer ${token}` })
       .send(newBlogWithoutTitle)
       .expect(400)
 
     const res2 = await api
       .post('/api/blogs')
+      .set({ Authorization: `Bearer ${token}` })
       .send(newBlogWithoutUrl)
       .expect(400)
 
@@ -109,7 +149,12 @@ describe("blogs", () => {
     const blogsAtStart = await helper.blogsInDb();
     const postToDelete = blogsAtStart[0];
 
-    await api.delete(`/api/blogs/${postToDelete.id}`).expect(204);
+    const { token, username } = await signInUser()
+
+    await api
+      .delete(`/api/blogs/${postToDelete.id}`)
+      .set({ Authorization: `Bearer ${token}` })
+      .expect(204);
 
     const blogsAtEnd = await helper.blogsInDb()
     const entryExists = !!blogsAtEnd.find(post => post.id === postToDelete.id);
@@ -134,13 +179,29 @@ describe("blogs", () => {
 
     assert.strictEqual(updatedLikes, newLikes)
   })
+
+  test('adding new blog without being authenticated fails', async () => {
+    const newBlog = {
+      "title": "Test Blog",
+      "author": "Test Testovich",
+      "url": "api/blog/",
+      "likes": 5,
+    }
+
+    const res = await api
+      .post('/api/blogs')
+      .send(newBlog)
+      .expect(401)
+
+    const blogsAtEnd = await helper.blogsInDb()
+    assert.strictEqual(blogsAtEnd.length, helper.initialBlogs.length)
+  })
 })
 
 describe('New users', () => {
   beforeEach(async () => {
     await User.deleteMany({})
-    const passwordHash = await bcrypt.hash(PASSWORD, 10)
-    const user = new User({ username: 'root', passwordHash })
+    const user = await addDummyUser()
     await user.save()
   })
 
