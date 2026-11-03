@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import Blog from './components/Blog'
 import blogService from './services/blogs'
 import loginService from './services/login'
+import Nottificaton from './components/Nottificaton'
 
 const App = () => {
   const [blogs, setBlogs] = useState([])
@@ -13,6 +14,8 @@ const App = () => {
   const [author, setAuthor] = useState('')
   const [url, setUrl] = useState('')
 
+  const [nottificaitonMessage, setNottificaitonMessage] = useState(null)
+  const [isError, setIsError] = useState(false)
 
   useEffect(() => {
     blogService.getAll().then(blogs =>
@@ -40,8 +43,13 @@ const App = () => {
       blogService.setToken(user.token)
       setUsername('')
       setPassword('')
+      setIsError(false)
+      setNottificaitonMessage(`${user.name} successfully logged in !`)
+      resetNottification()
     } catch {
-      console.error('Wrong credentials')
+      setIsError(true)
+      setNottificaitonMessage(`Wrong username or password`)
+      resetNottification()
     }
     console.log('logging in with', username, password)
   }
@@ -51,22 +59,43 @@ const App = () => {
     setUser(null);
   }
 
+  const resetNottification = (time = 5000) => {
+    setTimeout(() => {
+      setNottificaitonMessage(null)
+    }, time)
+  }
+
   const handleCreateBlog = async (event) => {
     event.preventDefault();
    
-    if (title === '' || author === '' || url === '') return;
+    if (title === '' || author === '' || url === '') {
+      setNottificaitonMessage('Please provide all information');
+      setIsError(true)
+      resetNottification()
+      return;
+    }
 
-    const newBlog = await blogService.createBlog({title, author, url})
-    setBlogs(blogs.concat(newBlog))
-    setTitle('')
-    setAuthor('')
-    setUrl('')
+    try {
+      const newBlog = await blogService.createBlog({title, author, url})
+      setBlogs(blogs.concat(newBlog))
+      setTitle('')
+      setAuthor('')
+      setUrl('')
+      setIsError(false);
+      setNottificaitonMessage(`a new blog "${newBlog.title}"! by ${newBlog.author} added`)
+      resetNottification()
+    } catch (error) {
+      setIsError(true);
+      setNottificaitonMessage(`Couldn't create new blog: ${error}`)
+      resetNottification()
+    }
   }
  
   if (user === null) {
     return (
       <div>
         <h2>Log in to application</h2>
+        <Nottificaton message={nottificaitonMessage} isError={isError} />
         <form onSubmit={handleLogin}>
           <div>
           <label>
@@ -95,6 +124,7 @@ const App = () => {
   return (
     <div>
       <h2>blogs</h2>
+      <Nottificaton message={nottificaitonMessage} isError={isError} />
       <p>{user.name} logged in <button onClick={handleLogout}>logout</button></p>
 
       <h2>Create new</h2>
