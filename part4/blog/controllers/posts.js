@@ -24,6 +24,7 @@ postsRouter.post('/', userExtractor, async (request, response) => {
   })
 
   const savedBlog = await newBlog.save();
+  await savedBlog.populate('user');
   user.blogs = user.blogs.concat(savedBlog._id);
   await user.save();
   
@@ -46,15 +47,16 @@ postsRouter.delete('/:id', userExtractor, async (request, response) => {
   response.status(204).end()
 })
 
-postsRouter.put('/:id', async (request, response) => {
+postsRouter.put('/:id', userExtractor, async (request, response) => {
   const { content, likes } = request.body;
 
   const blogToUpdate = await Blog.findById(request.params.id);
-  if (!blogToUpdate) return response.status(404).end();
+  if (!blogToUpdate) return response.status(404).json({ error: "Blog doesn't exists"})
 
   blogToUpdate.likes = likes;
 
   const updatedBlog = await blogToUpdate.save();
+  await updatedBlog.populate('user');
   response.json(updatedBlog);
 })
 
