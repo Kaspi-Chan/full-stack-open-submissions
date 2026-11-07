@@ -3,6 +3,8 @@ import Blog from './components/Blog'
 import blogService from './services/blogs'
 import loginService from './services/login'
 import Nottificaton from './components/Nottificaton'
+import Togglable from './components/Togglable'
+import BlogForm from './components/BlogForm'
 
 const App = () => {
   const [blogs, setBlogs] = useState([])
@@ -10,12 +12,10 @@ const App = () => {
   const [password, setPassword] = useState('')
   const [user, setUser] = useState(null)
 
-  const [title, setTitle] = useState('')
-  const [author, setAuthor] = useState('')
-  const [url, setUrl] = useState('')
-
   const [nottificaitonMessage, setNottificaitonMessage] = useState(null)
   const [isError, setIsError] = useState(false)
+
+  const [showBlogForm, setShowBlogForm] = useState(false);
 
   useEffect(() => {
     blogService.getAll().then(blogs =>
@@ -43,14 +43,11 @@ const App = () => {
       blogService.setToken(user.token)
       setUsername('')
       setPassword('')
-      setIsError(false)
-      setNottificaitonMessage(`${user.name} successfully logged in !`)
-      resetNottification()
+      handleNottification(`${user.name} successfully logged in !`, false)
     } catch {
-      setIsError(true)
-      setNottificaitonMessage(`Wrong username or password`)
-      resetNottification()
+      handleNottification(`Wrong username or password`, true)
     }
+
     console.log('logging in with', username, password)
   }
 
@@ -65,29 +62,22 @@ const App = () => {
     }, time)
   }
 
-  const handleCreateBlog = async (event) => {
-    event.preventDefault();
-   
-    if (title === '' || author === '' || url === '') {
-      setNottificaitonMessage('Please provide all information');
-      setIsError(true)
-      resetNottification()
-      return;
-    }
+  const handleNottification = (message, isError, time) => {
+    setIsError(isError)
+    setNottificaitonMessage(message);
+    resetNottification(time && time)
+  }
 
+  const addBlog = async (blogInfo) => {
     try {
-      const newBlog = await blogService.createBlog({title, author, url})
+      const newBlog = await blogService.createBlog(blogInfo)
       setBlogs(blogs.concat(newBlog))
-      setTitle('')
-      setAuthor('')
-      setUrl('')
-      setIsError(false);
-      setNottificaitonMessage(`a new blog "${newBlog.title}"! by ${newBlog.author} added`)
-      resetNottification()
+      handleNottification(`a new blog "${newBlog.title}"! by ${newBlog.author} added`, false)
+      setShowBlogForm(false);
+      return true;
     } catch (error) {
-      setIsError(true);
-      setNottificaitonMessage(`Couldn't create new blog: ${error}`)
-      resetNottification()
+      handleNottification(`Couldn't create new blog: ${error}`, true)
+      return false
     }
   }
  
@@ -127,28 +117,13 @@ const App = () => {
       <Nottificaton message={nottificaitonMessage} isError={isError} />
       <p>{user.name} logged in <button onClick={handleLogout}>logout</button></p>
 
-      <h2>Create new</h2>
-      <form onSubmit={handleCreateBlog}>
-        <div>
-          <label>
-            title:
-            <input type='text' value={title} onInput={({target}) => setTitle(target.value)} />
-          </label>
-        </div>
-        <div>
-          <label>
-            author:
-            <input type='text' value={author} onInput={({target}) => setAuthor(target.value)} />
-          </label>
-        </div>
-        <div>
-          <label>
-            url:
-            <input type='text' value={url} onInput={({target}) => setUrl(target.value)} />
-          </label>
-        </div>
-        <button type="submit">Create</button>
-      </form>
+      <Togglable
+         label="create new blog" 
+         visible={showBlogForm}
+         setVisible={setShowBlogForm}>
+        <h2>Create new</h2>
+        <BlogForm addBlog={addBlog} handleNottification={handleNottification} />
+      </Togglable>
       
       {blogs.map(blog =>
         <Blog key={blog.id} blog={blog} />
