@@ -1,6 +1,6 @@
 import { useState } from "react"
 
-const Blog = ({ blog, handleLike }) => {
+const Blog = ({ blog, user, handleLike, handleRemove }) => {
   const blogStyle = {
     paddingTop: 10,
     paddingLeft: 2,
@@ -27,6 +27,7 @@ const Blog = ({ blog, handleLike }) => {
           <button onClick={async () => handleLike(blog)}>like</button>
         </div>
         <div>Added by: {blog.user?.name ?? 'No data'}</div>
+      {user.username === blog.user?.username && <button onClick={async () => handleRemove(blog)}>remove</button>}
       </div>
     </div>  
   )

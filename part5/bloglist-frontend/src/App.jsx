@@ -16,6 +16,7 @@ const App = () => {
   const [isError, setIsError] = useState(false)
 
   const [showBlogForm, setShowBlogForm] = useState(false);
+  const sortedBlogs = [...blogs].sort((a, b) => b.likes - a.likes)
 
   useEffect(() => {
     blogService.getAll().then(blogs =>
@@ -90,6 +91,18 @@ const App = () => {
       handleNottification(`Couldn't update likes: ${error}`, true)
     }
   }
+
+  const handleRemove = async (blog) => {
+    if (!window.confirm(`Remove blog ${blog.title}! By ${blog.author}`)) return;
+
+    try {
+      await blogService.deleteBlog(blog.id);
+      setBlogs(blogs.filter(b => b.id !== blog.id))
+      handleNottification(`Blog removed!`, false)
+    } catch (error) {
+      handleNottification(`Couldn't remove blog: ${error}`, true)
+    }
+  }
  
   if (user === null) {
     return (
@@ -135,11 +148,13 @@ const App = () => {
         <BlogForm addBlog={addBlog} handleNottification={handleNottification} />
       </Togglable>
       
-      {blogs.map(blog =>
+      {sortedBlogs.map(blog =>
         <Blog 
           key={blog.id} 
           blog={blog}
-          handleLike={handleLike} />
+          handleLike={handleLike}
+          handleRemove={handleRemove}
+          user={user} />
       )}
     </div>
   )
