@@ -1,9 +1,9 @@
 const Togglable = (props) => {
-  const hideWhenVisible = { display: props.visible ? 'none' : ''}
-  const showWhenVisible = { display: props.visible ? '' : 'none'}
+  const hideWhenVisible = { display: props.visible ? 'none' : '' }
+  const showWhenVisible = { display: props.visible ? '' : 'none' }
 
   const toggleVisibility = () => {
-    props.setVisible(!props.visible);
+    props.setVisible(!props.visible)
   }
 
   return (
@@ -19,4 +19,4 @@ const Togglable = (props) => {
   )
 }
 
-export default Togglable;
+export default Togglable

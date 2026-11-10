@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState } from 'react'
 
 const Blog = ({ blog, user, handleLike, handleRemove }) => {
   const blogStyle = {
@@ -9,7 +9,7 @@ const Blog = ({ blog, user, handleLike, handleRemove }) => {
     marginBottom: 5
   }
 
-  const [expanded, setExpanded] = useState(false);
+  const [expanded, setExpanded] = useState(false)
 
   return (
     <div style={blogStyle}>
@@ -20,16 +20,16 @@ const Blog = ({ blog, user, handleLike, handleRemove }) => {
           {expanded ? 'hide' : 'view'}
         </button>
       </div>
-      <div style={{display: expanded ? '' : 'none'}}>
+      <div style={{ display: expanded ? '' : 'none' }}>
         <div>URL: {blog.url}</div>
         <div>
           likes: {blog.likes}
           <button onClick={async () => handleLike(blog)}>like</button>
         </div>
         <div>Added by: {blog.user?.name ?? 'No data'}</div>
-      {user.username === blog.user?.username && <button onClick={async () => handleRemove(blog)}>remove</button>}
+        {user.username === blog.user?.username && <button onClick={async () => handleRemove(blog)}>remove</button>}
       </div>
-    </div>  
+    </div>
   )
 }
 
