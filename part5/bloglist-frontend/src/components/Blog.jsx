@@ -12,22 +12,22 @@ const Blog = ({ blog, user, handleLike, handleRemove }) => {
   const [expanded, setExpanded] = useState(false)
 
   return (
-    <div style={blogStyle}>
-      <div>
+    <div style={blogStyle} className='blog'>
+      <div className='blog-content'>
         <span>{blog.title} </span>
         <span>{blog.author} </span>
         <button onClick={() => setExpanded(!expanded)}>
           {expanded ? 'hide' : 'view'}
         </button>
       </div>
-      <div style={{ display: expanded ? '' : 'none' }}>
+      <div className='blog-secondary-content' style={{ display: expanded ? '' : 'none' }}>
         <div>URL: {blog.url}</div>
         <div>
           likes: {blog.likes}
           <button onClick={async () => handleLike(blog)}>like</button>
         </div>
         <div>Added by: {blog.user?.name ?? 'No data'}</div>
-        {user.username === blog.user?.username && <button onClick={async () => handleRemove(blog)}>remove</button>}
+        {(user?.username || '') === blog.user?.username && <button onClick={async () => handleRemove(blog)}>remove</button>}
       </div>
     </div>
   )
